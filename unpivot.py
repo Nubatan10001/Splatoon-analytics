@@ -6,20 +6,20 @@ OUTPUT_PATH = "2022-09-26_players.csv"
 
 PLAYER_COL_RE = re.compile(r"^(A[1-4]|B[1-4])-(.+)$")
 
-# 1) 読み込み（元CSVは変更されない）
+# 1) 読み込み
 df = pl.read_csv(INPUT_PATH)
 
 # 2) プレイヤー列/試合共通列を分離
 player_cols = [c for c in df.columns if PLAYER_COL_RE.match(c)]
 match_cols  = [c for c in df.columns if c not in player_cols]
 
-# 3) 試合ID付与（後で確認・集計しやすい）
+# 3) 試合ID付与
 df = df.with_row_index("match_id")
 
-# 4) スロット一覧（存在するものだけ）
+# 4) スロット一覧
 slots = sorted({PLAYER_COL_RE.match(c).group(1) for c in player_cols})
 
-# 5) アンピボット（1行=試合 → 1行=プレイヤー）
+# 5) アンピボット（1行=1試合 → 1行=1プレイヤー）
 pieces = []
 for slot in slots:
     slot_cols = [c for c in player_cols if c.startswith(f"{slot}-")]
@@ -58,9 +58,9 @@ if existing_medal_cols:
         for c in existing_medal_cols
     ])
 
-# 7) 簡単な確認（先頭だけ表示）
+# 7) プレビュー
 print(df_long.head(16))
 
-# 8) CSV出力（別名で安全）
+# 8) CSV出力
 df_long.write_csv(OUTPUT_PATH)
 print(f"出力完了: {OUTPUT_PATH}")
