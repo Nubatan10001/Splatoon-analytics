@@ -1,13 +1,22 @@
 import re
+from pathlib import Path
 import polars as pl
 
-INPUT_PATH = "battle-results-csv/2022-09-26.csv"
-OUTPUT_PATH = "2022-09-26_players.csv"
+# 入力だけ変えればOK
+INPUT_PATH = Path("battle-results-csv/2022-10-01.csv")
 
 PLAYER_COL_RE = re.compile(r"^(A[1-4]|B[1-4])-(.+)$")
 
+# 出力先フォルダ（無ければ作る）
+OUT_DIR = Path("players-csv")
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# 入力ファイル名から日付部分を流用して出力名を作る
+date_stem = INPUT_PATH.stem
+OUTPUT_PATH = OUT_DIR / f"{date_stem}_players.csv"
+
 # 1) 読み込み
-df = pl.read_csv(INPUT_PATH)
+df = pl.read_csv(str(INPUT_PATH))
 
 # 2) プレイヤー列/試合共通列を分離
 player_cols = [c for c in df.columns if PLAYER_COL_RE.match(c)]
@@ -62,5 +71,5 @@ if existing_medal_cols:
 print(df_long.head(16))
 
 # 8) CSV出力
-df_long.write_csv(OUTPUT_PATH)
+df_long.write_csv(str(OUTPUT_PATH))
 print(f"出力完了: {OUTPUT_PATH}")
